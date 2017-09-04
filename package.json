@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/the-vampiire/slackMetadataScraper/issues"
   },
-  "homepage": "https://github.com/the-vampiire/slackMetadataScraper#readme"
+  "homepage": "https://github.com/the-vampiire/slackMetadataScraper#readme",
+  "dependencies": {
+    "request": "^2.81.0"
+  }
 }
