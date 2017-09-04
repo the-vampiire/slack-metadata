@@ -9,14 +9,7 @@
 
 const request = require('request');
 
-function getChannelHistory(channelID, count, start, end){
-
-// if deploying on a server and using dotenv uncomment the following line
-    // const oAuthToken = process.env.oAuthToken;
-
-// if using outside a server uncomment and put your oAuthToken on the line below
-    // const oAuthToken = ``;
-
+function getChannelHistory(channelID, oAuthtoken, count, start, end){
 
     let url = `https://slack.com/api/channels.history?token=${oAuthToken}&channel=${channelID}`;
 
