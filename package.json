@@ -1,6 +1,6 @@
 {
   "name": "slackmetascraper",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Scrapes a Slack channel and returns a metaData object. This object is labelled by the timestamp of the last message scraped during that query. The metadata object contains an array of userMetadata objects which store all surface and nested metadata per user (including bots - identified as such). Metadata is all quantitative data available from a channel. See the readme for details on the output",
   "main": "channelScraper.js",
   "scripts": {
