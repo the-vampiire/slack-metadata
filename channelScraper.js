@@ -1,6 +1,8 @@
 
 // ---------------- PARAMETERS --------------- //
 // <channelID>: Slack channel ID to query for message history
+// <oAuthToken>: Slack oAuth token issued to your app / bot for the Slack team
+    // you must also allow the permissions scope "channels.history"
 // [count]: number of messages to return in the query - default 100 messages
 // [start]: beginning timestamp to query message history
     // use most recent metaData.latest for this parameter during daily queries
