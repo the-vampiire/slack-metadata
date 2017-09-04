@@ -10,13 +10,15 @@
 - `<channelID>`: Slack channel ID to query for message history
 
 - `[count]`: number of messages to return in the query - default 100 messages
+
 - `[start]`: beginning timestamp to query message history
     - use most recent metaData.latest for this parameter during daily queries
+
 - `[end]`: ending timestamp to query message history - default to current time
 
 ### oAuthToken
 
-- All you need to supply is an oAuthToken (with the `channels.history` permission scope) from Slack and a slack channel ID.
+- All you need to supply is an oAuthToken (with the `channels.history` permission scope) from Slack and a valid Slack channel ID of the channel you want to scrape.
 
 
 # Sample Outputs
