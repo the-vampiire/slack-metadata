@@ -9,7 +9,7 @@
 
 const request = require('request');
 
-function getChannelHistory(channelID, oAuthtoken, count, start, end){
+function getChannelHistory(channelID, oAuthToken, count, start, end){
 
     let url = `https://slack.com/api/channels.history?token=${oAuthToken}&channel=${channelID}`;
 
