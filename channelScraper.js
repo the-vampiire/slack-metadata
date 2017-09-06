@@ -18,7 +18,7 @@ function getChannelHistory(channelID, oAuthToken, count, start, end){
 // append optional parameters to the query string
     if(count) url += `&count=${count}`;
     if(start) url += `&oldest=${start}`;
-    if(end) url += `$latest=${end}`;
+    if(end) url += `&latest=${end}`;
 
     return new Promise((resolve, reject) => {
         request.post({url}, (error, response, body) => {
