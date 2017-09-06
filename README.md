@@ -2,24 +2,31 @@
 
 ### This is a tool that captures Slack channel metadata of all users / bot users in a selected timeframe
 
-### **No qualitative message data is captured** - only quantitative metadata identifiable by the user's Slack user ID
+### If you would like to help improve this package email me at vampiirecodes gmail com or visit the [Github repo](https://github.com/the-vampiire/slackMetadataScraper)
+
+## **No qualitative message data is read or captured** - only quantitative metadata identifiable by the user's Slack user ID
 
 # Usage
 ### Parameters 
-
+#### Required
 - `<channelID>`: Slack channel ID to query for message history
 
 - `<oAuthToken>`: Slack oAuth token issued to your app / bot for the Slack team
     - you must also allow the permissions scope "channels.history"
 
-- `[count]`: number of messages to return in the query - default 100 messages
+#### Optional
+- `[count]`: number of messages to return in the query
+    - default: 100 messages
+    - maximum: 1000 messages
 
 - `[start]`: beginning timestamp to query message history
     - use most recent metaData.latest for this parameter during daily queries
 
 - `[end]`: ending timestamp to query message history - default to current time
 
-### oAuthToken
+### Note: if no start / end are passed then the entire message history (up to 1000 messages) will be scanned for metadata
+
+### How to use
 
 - All you need to supply is an oAuthToken (with the `channels.history` permission scope) from Slack and a valid Slack channel ID of the channel you want to scrape.
 
