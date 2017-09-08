@@ -11,7 +11,7 @@
 
 const request = require('request');
 
-function getChannelHistory(channelID, oAuthToken, count, start, end){
+function metadataScraper(channelID, oAuthToken, count, start, end){
 
     let url = `https://slack.com/api/channels.history?token=${oAuthToken}&channel=${channelID}`;
 
@@ -50,42 +50,91 @@ function parseMessages(messages){
             let user;
             if(message.comment) user = message.comment.user;
             else user = message.bot_id || (message.comment && message.comment.user) || message.user ;
-            userMetaData.push(parseSubMetadata(message, {user}, true));
+            userMetaData.push(parseSubMetadata(message, {user}));
         }
 
     // user's metadata exists --> modify their data object using metaDataIndex
-        else userMetaData[metaDataIndex] = parseSubMetadata(message, userMetaData[metaDataIndex], false);   
+        else userMetaData[metaDataIndex] = parseSubMetadata(message, userMetaData[metaDataIndex]);   
     });
 
     const metaData = {
-    // set the latest field to be the timestamp of the last message in this query
-// DOUBLE CHECK THIS "LATEST" LINE'S LOGIC
-        latest: messages[messages.length-1].ts,
+    // set the timestamp field to be the latest message in this query
+        // Slack returns messages from latest to oldest
+        timestamp: messages[0].ts,
         userMetaData
     }
 
     return metaData;
 }
 
-// <creation>: a boolean that indicates whether the parseSubMetadata function is being called during
-// metadata creation or modification. separates the respective logic while making shared logic
-// accessible to both modes
-function parseSubMetadata(message, newMetadata, creation){
+function parseSubMetadata(message, data){
+    const newMetadata = data;
 
     if(message.subtype) {
-        if(creation) newMetadata[message.subtype] = 1;
-        else {
-            if(newMetadata[message.subtype]) newMetadata[message.subtype]++;
-            else newMetadata[message.subtype] = 1;
-        }
-
-    // capture file metadata
-        if(message.subtype === 'file_share') {
+        // capture file metadata
+         if(message.subtype === 'file_share') {
             if(!newMetadata.fileMetadata) newMetadata.fileMetadata = [];
             newMetadata.fileMetadata.push(parseFileMetadata(message.file));
         }
+
+        if(['reply_broadcast', 'thread_broadcast', 'channel_join', 'bot_message'].includes(message.subtype)){
+            switch(message.subtype){
+                case 'reply_broadcast':
+                    if(!newMetadata.thread_comments) newMetadata.thread_comments = 1;
+                    else newMetadata.thread_comments += 1;
+                    break;
+                case 'thread_broadcast':
+                    break;
+                case 'bot_message':
+                // capture metadata of bot threads
+                    if (message.thread_ts) {
+                        if(!newMetadata.threads) newMetadata.threads = 1;
+                        else newMetadata.threads += 1;
+
+                        message.replies.forEach((reply) => {
+                            if(reply.user !== message.bot_id){
+                                if(!newMetadata.thread_replies) newMetadata.thread_replies = 1;
+                                else newMetadata.thread_replies +=1;
+                            }
+                        });
+                    }
+                    break;
+                case 'channel_join':
+                    break;
+                default:
+            }
+
+            if(!newMetadata.message) newMetadata.message = 1;
+            else newMetadata.message +=1;
+        } else {
+            if(!newMetadata[message.subtype]) newMetadata[message.subtype] = 1;
+            else newMetadata[message.subtype]++;
+        }
         
-    };
+    } else if (!message.thread_ts) {
+        if(!newMetadata.message) newMetadata.message = 1;
+        else newMetadata.message++;
+    }
+
+// capture message threads data
+    if (message.thread_ts) {
+        if(!message.root && !message.attachments){
+            console.log(message);
+        // capture thread replies on a user's thread
+            if(message.replies){
+                message.replies.forEach((reply) => {
+                    if(reply.user !== message.user){
+                        if(!newMetadata.thread_replies) newMetadata.thread_replies = 1;
+                        else newMetadata.thread_replies += 1;
+                    }
+                });
+            } else {
+            // capture user comments on threads
+                if(!newMetadata.thread_comments) newMetadata.thread_comments = 1;
+                else newMetadata.thread_comments += 1;
+            }
+        }
+    }
 
 // capture reactions
     if(message.reactions){
@@ -93,18 +142,20 @@ function parseSubMetadata(message, newMetadata, creation){
         message.reactions.forEach( reaction => newMetadata.reactions += reaction.count);
     }
 
-// capture stars
-    if(message.is_starred) newMetadata.num_stars = 1;
-    if(message.num_stars) newMetadata.num_stars = message.num_stars;
+// capture single stars
+    if(message.is_starred) {
+        if(!newMetadata.num_stars) newMetadata.num_stars = 1;
+        else newMetadata.num_stars += 1
+    }
+
+// capture multiple stars
+    if(message.num_stars) {
+        if (!newMetadata.num_stars) newMetadata.num_stars = message.num_stars;
+        else newMetadata.num_stars += message.num_stars;
+    }
 
 // if the user is a bot then give it a bot boolean property for identification downstream
     if(message.bot_id) newMetadata.bot = true;
-
-// if no submetadata is available for the message then it defaults to a plain text message count
-    else {
-        if(creation) newMetadata.message = 1;
-        else newMetadata.message++;
-    }
 
     return newMetadata;
 }
@@ -122,9 +173,10 @@ function parseFileMetadata(file){
 
     if(file.comments_count) fileMetaData.comments_count = file.comments_count;
 
-    if(file.num_stars) fileMetaData.num_stars = file.num_stars;
+    if(file.num_stars) fileMetaData.num_stars = file.stars;
 
     return fileMetaData;
 }
 
-module.exports = getChannelHistory;
+module.exports = metadataScraper;
+

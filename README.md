@@ -35,12 +35,12 @@
 
 ### metaData object returned
 
-#### Note: the "latest" property is the Slack ts (timestamp) value of the last message scanned in the metadata query
+#### Note: the "timestamp" property is the Slack ts (timestamp) value of the latest in the current query
 
 #### This timestamp can be used for daily scans as a starting time for the next query (to prevent overlap of data)
 
 ```
-{ latest: '1504302811.000247',
+{ timestamp: '1504302811.000247',
 userMetaData: [{ 
     user: 'U6XDNVDPF',
     file_comment: 4,
