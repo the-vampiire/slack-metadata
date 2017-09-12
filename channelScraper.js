@@ -3,9 +3,9 @@
 // <channelID>: Slack channel ID to query for message history
 // <oAuthToken>: Slack oAuth token issued to your app / bot for the Slack team
     // you must also allow the permissions scope "channels.history"
-// [count]: number of messages to return in the query - default 100 / max 1000 messages
+// [count]: number of messages to return in the query - default 100 messages
 // [start]: beginning timestamp to query message history
-    // use most recent metaData.timestamp for this parameter during daily queries
+    // use most recent metaData.latest for this parameter during daily queries
 // [end]: ending timestamp to query message history - default to current time
 
 
@@ -64,7 +64,7 @@ function parseMessages(messages){
         timestamp: messages[0].ts,
         userMetaData
     }
-
+    
     return metaData;
 }
 
@@ -84,8 +84,6 @@ function parseSubMetadata(message, data){
                     if(!newMetadata.thread_comments) newMetadata.thread_comments = 1;
                     else newMetadata.thread_comments += 1;
                     break;
-                case 'thread_broadcast':
-                    break;
                 case 'bot_message':
                 // capture metadata of bot threads
                     if (message.thread_ts) {
@@ -99,8 +97,6 @@ function parseSubMetadata(message, data){
                             }
                         });
                     }
-                    break;
-                case 'channel_join':
                     break;
                 default:
             }
@@ -175,10 +171,9 @@ function parseFileMetadata(file){
 
     if(file.comments_count) fileMetaData.comments_count = file.comments_count;
 
-    if(file.num_stars) fileMetaData.num_stars = file.stars;
+    if(file.num_stars) fileMetaData.num_stars = file.num_stars;
 
     return fileMetaData;
 }
 
 module.exports = metadataScraper;
-
