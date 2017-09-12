@@ -1,6 +1,6 @@
 # Slack Channel Metadata Scraper
 
-##### Latest change: v0.1.8: worked out the issues with capturing threads / threaded comments. SCMS now correctly captures threads, thread comments, and thread replies. 
+##### Latest change: v0.1.9: worked out the issues with capturing threads / threaded comments. SCMS now correctly captures threads, thread comments, and thread replies. 
 
 ### This is a tool that captures Slack channel metadata of all users / bot users in a selected timeframe
 
