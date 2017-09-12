@@ -3,9 +3,9 @@
 // <channelID>: Slack channel ID to query for message history
 // <oAuthToken>: Slack oAuth token issued to your app / bot for the Slack team
     // you must also allow the permissions scope "channels.history"
-// [count]: number of messages to return in the query - default 100 messages
+// [count]: number of messages to return in the query - default 100 / max 1000 messages
 // [start]: beginning timestamp to query message history
-    // use most recent metaData.latest for this parameter during daily queries
+    // use most recent metaData.timestamp for this parameter during daily queries
 // [end]: ending timestamp to query message history - default to current time
 
 
@@ -34,6 +34,7 @@ function parseMessages(messages){
     let userMetaData = [];
 
     messages.forEach( message => {
+
         let metaDataIndex;
     // user's metadata doesn't exist --> build their data object
         if(!userMetaData.some( (data, index) => { 
@@ -103,25 +104,20 @@ function parseSubMetadata(message, data){
                     break;
                 default:
             }
-
-            if(!newMetadata.message) newMetadata.message = 1;
-            else newMetadata.message +=1;
         } else {
             if(!newMetadata[message.subtype]) newMetadata[message.subtype] = 1;
             else newMetadata[message.subtype]++;
-        }
-        
-    } else if (!message.thread_ts) {
-        if(!newMetadata.message) newMetadata.message = 1;
-        else newMetadata.message++;
+        }   
     }
 
 // capture message threads data
     if (message.thread_ts) {
         if(!message.root && !message.attachments){
-            console.log(message);
         // capture thread replies on a user's thread
             if(message.replies){
+                if(!newMetadata.threads) newMetadata.threads = 1;
+                else newMetadata.threads += 1;
+
                 message.replies.forEach((reply) => {
                     if(reply.user !== message.user){
                         if(!newMetadata.thread_replies) newMetadata.thread_replies = 1;
@@ -143,16 +139,22 @@ function parseSubMetadata(message, data){
     }
 
 // capture single stars
-    if(message.is_starred) {
+    if (message.is_starred) {
         if(!newMetadata.num_stars) newMetadata.num_stars = 1;
         else newMetadata.num_stars += 1
     }
 
 // capture multiple stars
-    if(message.num_stars) {
+    if (message.num_stars) {
         if (!newMetadata.num_stars) newMetadata.num_stars = message.num_stars;
         else newMetadata.num_stars += message.num_stars;
     }
+
+// capture plain text message (only contains type, user, text, and ts properties)
+    if (Object.keys(message).length === 4) {
+        if(!newMetadata.messages) newMetadata.messages = 1;
+        else newMetadata.messages += 1;
+    }  
 
 // if the user is a bot then give it a bot boolean property for identification downstream
     if(message.bot_id) newMetadata.bot = true;

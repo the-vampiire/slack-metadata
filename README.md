@@ -1,5 +1,7 @@
 # Slack Channel Metadata Scraper
 
+##### Latest change: v0.1.8: worked out the issues with capturing threads / threaded comments. SCMS now correctly captures threads, thread comments, and thread replies. 
+
 ### This is a tool that captures Slack channel metadata of all users / bot users in a selected timeframe
 
 ### If you would like to help improve this package email me at vampiirecodes gmail com or visit the [Github repo](https://github.com/the-vampiire/slackMetadataScraper)
@@ -35,33 +37,23 @@
 
 ### metaData object returned
 
-#### Note: the "timestamp" property is the Slack ts (timestamp) value of the latest in the current query
+#### Note: the `timestamp` property is the Slack ts (timestamp) value of the most recent message in the current query
 
 #### This timestamp can be used for daily scans as a starting time for the next query (to prevent overlap of data)
 
 ```
-{ timestamp: '1504302811.000247',
-userMetaData: [{ 
-    user: 'U6XDNVDPF',
-    file_comment: 4,
-    message: 29,
-    reactions: 5,
-    num_stars: 1,
-    file_share: 3,
-    fileMetadata: [Array],
-    channel_join: 1 },
-
-    { user: 'B6Y6S64RL',
-    bot_message: 16,
-    reactions: 2,
-    num_stars: 1,
-    bot: true },
-
-    { user: 'U6XBNKWSG', channel_join: 1, message: 1 },
-
-    { user: 'U6X7P8VS7', channel_join: 1, message: 1 } 
-
-]}
+{ timestamp: '1505255831.000078',
+  userMetaData: 
+   [ { user: 'U6XDNVDPF',
+       file_comment: 1,
+       fileMetadata: [Array],
+       file_share: 1,
+       messages: 2,
+       thread_comments: 8,
+       threads: 2,
+       reactions: 1,
+       num_stars: 1 },
+     { user: 'B6Y7F2Y0M', threads: 1, thread_replies: 3, bot: true } ] }
 ```
 
 ### metaData fileMetadata array
