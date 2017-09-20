@@ -18,7 +18,7 @@
 
 #### Optional
 - `[start]`: beginning timestamp to query message history
-    - use most recent metaData.latest for this parameter during daily queries
+    - use most recent metaData.timestamp for this parameter during daily queries (more detail below)
 
 - `[end]`: ending timestamp to query message history - default to current time
 
