@@ -1,6 +1,6 @@
 # Slack Channel Metadata Scraper
 
-##### Latest change: v0.2.0: fixed an issue where if no messages are found for the given timeframe the tool would crash. will now return "No messages to scan" instead of crashing. the count parameter has been moved to the last position in the function - if no count is passed then the default and Slack maximum of 1000 messages will be called for that query
+##### Latest change: v0.2.3: fixed an issue where if no messages are found for the given timeframe the tool would crash. will now return "No messages to scan" instead of crashing. the count parameter has been moved to the last position in the function - if no count is passed then the default and Slack maximum of 1000 messages will be called for that query
 
 ### This is a tool that captures Slack channel metadata of all users / bot users in a selected timeframe
 
