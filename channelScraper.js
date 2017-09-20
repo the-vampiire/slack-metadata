@@ -11,12 +11,13 @@
 
 const request = require('request');
 
-function metadataScraper(channelID, oAuthToken, count, start, end){
+function metadataScraper(channelID, oAuthToken, start, end, count){
 
     let url = `https://slack.com/api/channels.history?token=${oAuthToken}&channel=${channelID}`;
 
 // append optional parameters to the query string
-    if(count) url += `&count=${count}`;
+    if(count) url += `&count=${count}`
+    else url += `&count=1000`
     if(start) url += `&oldest=${start}`;
     if(end) url += `&latest=${end}`;
 
@@ -24,8 +25,10 @@ function metadataScraper(channelID, oAuthToken, count, start, end){
         request.post({url}, (error, response, body) => {
             body = JSON.parse(body);
             if(error) reject (error)
-            else if(body.ok) resolve(parseMessages(body.messages));
-            else reject('unhandled request failure');
+            else if (body.ok) {
+                const metaDataOutput = parseMessages(body.messages);
+                metaDataOutput ? resolve(metaDataOutput) : reject('No messages to scan');
+            } else reject('unhandled request failure');
         });
     });
 }
@@ -33,39 +36,40 @@ function metadataScraper(channelID, oAuthToken, count, start, end){
 function parseMessages(messages){
     let userMetaData = [];
 
-    messages.forEach( message => {
+    if (messages[0]) {
+        messages.forEach( message => {
+            let metaDataIndex;
+        // user's metadata doesn't exist --> build their data object
+            if(!userMetaData.some( (data, index) => { 
+                if(data.user === message.user || 
+                    data.user === message.bot_id || 
+                    (message.comment && data.user === message.comment.user) 
+                ){
+                // if the user's metadata object is found then set the index for use in the else block
+                    metaDataIndex = index;
+                    return true 
+                }  
+            })) {
+            // parse any available submetadata to build the user's metadata object
+                let user;
+                if(message.comment) user = message.comment.user;
+                else user = message.bot_id || (message.comment && message.comment.user) || message.user ;
+                userMetaData.push(parseSubMetadata(message, {user}));
+            }
 
-        let metaDataIndex;
-    // user's metadata doesn't exist --> build their data object
-        if(!userMetaData.some( (data, index) => { 
-            if(data.user === message.user || 
-                data.user === message.bot_id || 
-                (message.comment && data.user === message.comment.user) 
-            ){
-            // if the user's metadata object is found then set the index for use in the else block
-                metaDataIndex = index;
-                return true 
-            }  
-        })) {
-        // parse any available submetadata to build the user's metadata object
-            let user;
-            if(message.comment) user = message.comment.user;
-            else user = message.bot_id || (message.comment && message.comment.user) || message.user ;
-            userMetaData.push(parseSubMetadata(message, {user}));
+        // user's metadata exists --> modify their data object using metaDataIndex
+            else userMetaData[metaDataIndex] = parseSubMetadata(message, userMetaData[metaDataIndex]);   
+        });
+
+        const metaData = {
+        // set the timestamp field to be the latest message in this query
+            // Slack returns messages from latest to oldest
+            timestamp: messages[0].ts,
+            userMetaData
         }
 
-    // user's metadata exists --> modify their data object using metaDataIndex
-        else userMetaData[metaDataIndex] = parseSubMetadata(message, userMetaData[metaDataIndex]);   
-    });
-
-    const metaData = {
-    // set the timestamp field to be the latest message in this query
-        // Slack returns messages from latest to oldest
-        timestamp: messages[0].ts,
-        userMetaData
-    }
-    
-    return metaData;
+        return metaData;
+    } else return false;
 }
 
 function parseSubMetadata(message, data){
