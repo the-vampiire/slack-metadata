@@ -138,13 +138,12 @@ function parseSubMetadata(message, data){
         message.reactions.forEach( reaction => newMetadata.reactions += reaction.count);
     }
 
-// capture single stars
+// captures a comment being "starred" (saved for later in Slack)
     if (message.is_starred) {
-        if(!newMetadata.num_stars) newMetadata.num_stars = 1;
-        else newMetadata.num_stars += 1
+        if(!newMetadata.is_starred) newMetadata.is_starred = true;
     }
 
-// capture multiple stars
+// capture the number of times the message has been starred by other users
     if (message.num_stars) {
         if (!newMetadata.num_stars) newMetadata.num_stars = message.num_stars;
         else newMetadata.num_stars += message.num_stars;
@@ -175,7 +174,10 @@ function parseFileMetadata(file){
 
     if(file.comments_count) fileMetaData.comments_count = file.comments_count;
 
-    if(file.num_stars) fileMetaData.num_stars = file.num_stars;
+    if(file.num_stars) {
+        fileMetaData.is_starred = true;
+        fileMetaData.num_stars = file.num_stars;
+    }
 
     return fileMetaData;
 }
