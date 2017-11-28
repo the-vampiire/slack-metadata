@@ -1,10 +1,10 @@
 # Slack Channel Metadata Scraper
 
-##### Latest change: v0.2.4: is_starred will now be stored as a boolean representing whether the message / file has been starred at least once. its value can be used as an indicator for the potential for num_stars to be greater than 1
+##### Latest change: v0.2.5: updated readme and fixed message counter (prevents double-counting with thread replies which are also broadcasted to the channel)
 
 ### This is a tool that captures Slack channel metadata of all users / bot users in a selected timeframe
 
-### If you would like to help improve this package email me at vampiirecodes gmail com or visit the [Github repo](https://github.com/the-vampiire/slackMetadataScraper)
+### If you would like to help improve this package visit the [Github repo](https://github.com/the-vampiire/slackMetadataScraper)
 
 ## **No qualitative message data is read or captured** - only quantitative metadata identifiable by the user's Slack user ID
 
@@ -29,8 +29,18 @@
 
 ### How to use
 
-- All you need to supply is an oAuthToken (with the `channels.history` permission scope) from Slack and a valid Slack channel ID of the channel you want to scrape.
+- All you need to supply is an oAuthToken (with the `channels.history` permission scope set in Slack under oAuth&permissions -> Scopes) from Slack and a valid Slack channel ID of the channel you want to scrape.
+- Returns a promise 
 
+### Sample Usage
+```
+const scraper = require('slackmetascraper');
+
+scraper('SLACK_CHANNEL_ID', 'SLACK_TEAM_OAUTH_TOKEN')
+.then(output => console.log(output))
+.catch(error => console.error(error));
+
+```
 
 # Sample Outputs
 
@@ -42,32 +52,34 @@
 #### This timestamp can be used for daily scans as a starting time for the next query (to prevent overlap of data)
 
 ```
-{ timestamp: '1505255831.000078',
-  userMetaData: 
-   [ { user: 'U6XDNVDPF',
+{ timestamp: '1511848922.000048',
+  userMetaData:
+   [ { user: 'U76U7H28J',
        file_comment: 1,
+       messages: 111,
        fileMetadata: [Array],
        file_share: 1,
-       messages: 2,
-       thread_comments: 8,
+       thread_comments: 4,
+       reactions: 2,
+       threads: 1 },
+     { user: 'B77FHCQBB', messages: 69, bot: true },
+     { user: 'B781B3AN6', messages: 1, bot: true },
+     { user: 'U75K95UMP',
        threads: 2,
-       reactions: 1,
-       num_stars: 1 },
-     { user: 'B6Y7F2Y0M', threads: 1, thread_replies: 3, bot: true } ] }
+       thread_replies: 4,
+       reactions: 2,
+       is_starred: true,
+       messages: 8,
+       pinned_item: 1 } ] }
 ```
 
 ### metaData fileMetadata array
 
 ```
-[ { type: 'markdown',
-    lines: 4,
+[ { type: 'python',
+    lines: 3,
     reactions: 1,
-    comments_count: 3,
-    num_stars: 1 },
-  { type: 'javascript',
-    lines: 6,
-    reactions: 2,
-    comments_count: 5,
-    num_stars: 1 },
-  { type: 'javascript', lines: 1 } ]
+    comments_count: 1,
+    is_starred: true,
+    num_stars: 1 } ]
 ```

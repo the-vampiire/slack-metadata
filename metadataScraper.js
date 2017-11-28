@@ -34,13 +34,13 @@ function metadataScraper(channelID, oAuthToken, start, end, count){
 }
 
 function parseMessages(messages){
-    let userMetaData = [];
+    let userMetadata = [];
 
     if (messages[0]) {
         messages.forEach( message => {
             let metaDataIndex;
         // user's metadata doesn't exist --> build their data object
-            if(!userMetaData.some( (data, index) => { 
+            if(!userMetadata.some( (data, index) => { 
                 if(data.user === message.user || 
                     data.user === message.bot_id || 
                     (message.comment && data.user === message.comment.user) 
@@ -54,18 +54,18 @@ function parseMessages(messages){
                 let user;
                 if(message.comment) user = message.comment.user;
                 else user = message.bot_id || (message.comment && message.comment.user) || message.user ;
-                userMetaData.push(parseSubMetadata(message, {user}));
+                userMetadata.push(parseSubMetadata(message, {user}));
             }
 
         // user's metadata exists --> modify their data object using metaDataIndex
-            else userMetaData[metaDataIndex] = parseSubMetadata(message, userMetaData[metaDataIndex]);   
+            else userMetadata[metaDataIndex] = parseSubMetadata(message, userMetadata[metaDataIndex]);   
         });
 
         const metaData = {
         // set the timestamp field to be the latest message in this query
             // Slack returns messages from latest to oldest
             timestamp: messages[0].ts,
-            userMetaData
+            userMetadata
         }
 
         return metaData;
@@ -162,24 +162,24 @@ function parseSubMetadata(message, data){
 }
 
 function parseFileMetadata(file){
-    const fileMetaData = {
+    const fileMetadata = {
         type: file.filetype,
         lines: file.lines
     };
 
     if(file.reactions){
-        fileMetaData.reactions = 0;
-        file.reactions.forEach( reaction => fileMetaData.reactions += reaction.count);
+        fileMetadata.reactions = 0;
+        file.reactions.forEach( reaction => fileMetadata.reactions += reaction.count);
     }
 
-    if(file.comments_count) fileMetaData.comments_count = file.comments_count;
+    if(file.comments_count) fileMetadata.comments_count = file.comments_count;
 
     if(file.num_stars) {
-        fileMetaData.is_starred = true;
-        fileMetaData.num_stars = file.num_stars;
+        fileMetadata.is_starred = true;
+        fileMetadata.num_stars = file.num_stars;
     }
 
-    return fileMetaData;
+    return fileMetadata;
 }
 
 module.exports = metadataScraper;
