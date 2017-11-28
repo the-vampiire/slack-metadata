@@ -149,8 +149,8 @@ function parseSubMetadata(message, data){
         else newMetadata.num_stars += message.num_stars;
     }
 
-// capture plain text message (only contains type, user, text, and ts properties)
-    if (Object.keys(message).length === 4) {
+// capture original channel messages (prevent duplicates from thread-broadcasted messages )
+    if (message.subtype !== 'thread_broadcast') {
         if(!newMetadata.messages) newMetadata.messages = 1;
         else newMetadata.messages += 1;
     }  
