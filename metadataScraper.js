@@ -75,8 +75,8 @@ function parseSubMetadata(message, data){
     if(message.subtype) {
         // capture file metadata
          if(message.subtype === 'file_share') {
-            if(!newMetadata.fileMetadata) newMetadata.fileMetadata = [];
-            newMetadata.fileMetadata.push(parseFileMetadata(message.file));
+            if(!newMetadata.file_metadata) newMetadata.file_metadata = [];
+            newMetadata.file_metadata.push(parseFileMetadata(message.file));
         }
 
         if(['reply_broadcast', 'thread_broadcast', 'channel_join', 'bot_message'].includes(message.subtype)){
@@ -159,24 +159,24 @@ function parseSubMetadata(message, data){
 }
 
 function parseFileMetadata(file){
-    const fileMetadata = {
+    const file_metadata = {
         type: file.filetype,
         lines: file.lines
     };
 
     if(file.reactions){
-        fileMetadata.reactions = 0;
-        file.reactions.forEach( reaction => fileMetadata.reactions += reaction.count);
+        file_metadata.reactions = 0;
+        file.reactions.forEach( reaction => file_metadata.reactions += reaction.count);
     }
 
-    if(file.comments_count) fileMetadata.comments_count = file.comments_count;
+    if(file.comments_count) file_metadata.comments_count = file.comments_count;
 
     if(file.num_stars) {
-        fileMetadata.is_starred = true;
-        fileMetadata.num_stars = file.num_stars;
+        file_metadata.is_starred = true;
+        file_metadata.num_stars = file.num_stars;
     }
 
-    return fileMetadata;
+    return file_metadata;
 }
 
 module.exports = metadataScraper;

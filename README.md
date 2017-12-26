@@ -1,8 +1,11 @@
 # Slack Channel Metadata Scraper
 
-##### Latest change: v1.1.0:
+##### Latest change: v2.0.0:
+- renamed `userMetadata` to `user_metadata`
+- renamed `fileMetadata` to `file_metadata`
+    - changed to fit the format of the rest of the data
 - switched to axios for promised based request / refactored / cleaned up code
-- added a `channel_id` property to the metadata output for ease of reference
+- added a `channel_id` property to the top level metadata output for ease of reference
 
 ### This is a tool that captures Slack channel metadata of all users / bot users in a selected timeframe
 
@@ -56,11 +59,11 @@ scraper('SLACK_CHANNEL_ID', 'SLACK_TEAM_OAUTH_TOKEN')
 ```
 { timestamp: '1511848922.000048',
   channel_id: 'C8366651C'
-  userMetaData:
+  user_metadata:
    [ { user: 'U76U7H28J',
        file_comment: 1,
        messages: 111,
-       fileMetadata: [Array],
+       file_metadata: [Array],
        file_share: 1,
        thread_comments: 4,
        reactions: 2,
