@@ -8,34 +8,37 @@
     // use most recent metaData.latest for this parameter during daily queries
 // [end]: ending timestamp to query message history - default to current time
 
+const axios = require('axios');
+const querystring = require('querystring');
 
-const request = require('request');
+async function metadataScraper(channel, token, start, end, count){
+    const url = 'https://slack.com/api/channels.history';
+    const request = { token, channel };
 
-function metadataScraper(channelID, oAuthToken, start, end, count){
-
-    let url = `https://slack.com/api/channels.history?token=${oAuthToken}&channel=${channelID}`;
-
-// append optional parameters to the query string
-    if(count) url += `&count=${count}`
-    else url += `&count=1000`
-    if(start) url += `&oldest=${start}`;
-    if(end) url += `&latest=${end}`;
-
-    return new Promise((resolve, reject) => {
-        request.post({url}, (error, response, body) => {
-            body = JSON.parse(body);
-            if(error) reject (error)
-            else if (body.ok) {
-                const metaDataOutput = parseMessages(body.messages);
-                metaDataOutput ? resolve(metaDataOutput) : reject('No messages to scan');
-            } else reject('unhandled request failure');
-        });
-    });
+    if (count) request.count = count;
+    else request.count = 1000;
+    if (start) request.start = start;
+    if (end) request.end = end;
+    
+    try {
+        const { data } = await axios.post(url, querystring.stringify(request));
+        if (!data.ok) {
+            return data.error;
+        }
+        const metaDataOutput = parseMessages(data.messages);
+        if (!metaDataOutput) {
+            return reject('No messages to scan');
+        }
+        metaDataOutput.channel_id = channel;
+        return metaDataOutput;
+    } catch ({ message }) {
+        console.error(new Error(message));
+        return message;
+    } 
 }
 
 function parseMessages(messages){
-    let userMetadata = [];
-
+    const userMetadata = [];
     if (messages[0]) {
         messages.forEach( message => {
             let metaDataIndex;
@@ -61,14 +64,8 @@ function parseMessages(messages){
             else userMetadata[metaDataIndex] = parseSubMetadata(message, userMetadata[metaDataIndex]);   
         });
 
-        const metaData = {
-        // set the timestamp field to be the latest message in this query
-            // Slack returns messages from latest to oldest
-            timestamp: messages[0].ts,
-            userMetadata
-        }
-
-        return metaData;
+        // set the timestamp field to be the most recent message in this query
+        return { timestamp: messages[0].ts, user_metadata: userMetadata };
     } else return false;
 }
 
