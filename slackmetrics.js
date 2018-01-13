@@ -17,18 +17,15 @@ async function metadataScraper(channel, token, start, end, count){
 
     if (count) request.count = count;
     else request.count = 1000;
-    if (start) request.start = start;
-    if (end) request.end = end;
-    
+    if (start) request.oldest = start;
+    if (end) request.latest = end;
+
     try {
         const { data } = await axios.post(url, querystring.stringify(request));
         if (!data.ok) {
             return data.error;
         }
-        const metaDataOutput = parseMessages(data.messages);
-        if (!metaDataOutput) {
-            return reject('No messages to scan');
-        }
+        const metaDataOutput = parseMessages(data.messages) || { user_metadata: null };
         metaDataOutput.channel_id = channel;
         return metaDataOutput;
     } catch ({ message }) {

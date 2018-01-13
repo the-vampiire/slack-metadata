@@ -1,11 +1,8 @@
 # Slack Channel Metadata Scraper
 
-##### Latest change: v2.0.0:
-- renamed `userMetadata` to `user_metadata`
-- renamed `fileMetadata` to `file_metadata`
-    - changed to fit the format of the rest of the data
-- switched to axios for promised based request / refactored / cleaned up code
-- added a `channel_id` property to the top level metadata output for ease of reference
+##### Latest change: v3.0.0:
+- fixed axios upgrade issue
+- if a channel has no updated metadata (from the provided timestamp) it will return `null` in the `user_metadata` field
 
 ### This is a tool that captures Slack channel metadata of all users / bot users in a selected timeframe
 
