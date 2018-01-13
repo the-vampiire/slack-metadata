@@ -1,6 +1,6 @@
 {
   "name": "slackmetascraper",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Scrapes a Slack channel and returns an array of userMetadata objects. Metadata objects contain all quantitative data available from a channel. See the readme for sample outputs",
   "main": "metadataScraper.js",
   "scripts": {
