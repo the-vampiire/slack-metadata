@@ -2,7 +2,7 @@
 // ---------------- PARAMETERS --------------- //
 // <channelID>: Slack channel ID to query for message history
 // <oAuthToken>: Slack oAuth token issued to your app / bot for the Slack team
-    // you must also allow the permissions scope "channels.history"
+    // you must also allow the permissions scope "channels.history" for your app
 // [count]: number of messages to return in the query - default 100 messages
 // [start]: beginning timestamp to query message history
     // use most recent metaData.latest for this parameter during daily queries
@@ -25,9 +25,22 @@ async function metadataScraper(channel, token, start, end, count){
         if (!data.ok) {
             return data.error;
         }
-        const metaDataOutput = parseMessages(data.messages) || { user_metadata: null };
-        metaDataOutput.channel_id = channel;
-        return metaDataOutput;
+
+        const metadata = { timestamp: data.messages[0].ts };
+        metadata.users_metadata = parseMessages(data.messages) || null;
+        metadata.channel_metadata = { channel_id: channel };
+        // populate channel_metadata
+        if (metadata.users_metadata) metadata.users_metadata.forEach((user_metadata) => {
+            Object.keys(user_metadata).forEach((metric) => {
+                // user_id "metric" is the slack_user_id and uneccessary in the aggregate
+                if (metric === 'user_id') return;
+                if (!metadata.channel_metadata[metric]) metadata.channel_metadata[metric] = user_metadata[metric];
+                else metadata.channel_metadata[metric] += user_metadata[metric];
+            })
+        });
+
+        return metadata;
+
     } catch ({ message }) {
         console.error(new Error(message));
         return message;
@@ -35,34 +48,35 @@ async function metadataScraper(channel, token, start, end, count){
 }
 
 function parseMessages(messages){
-    const userMetadata = [];
+    const users_metadata = [];
     if (messages[0]) {
         messages.forEach( message => {
-            let metaDataIndex;
-        // user's metadata doesn't exist --> build their data object
-            if(!userMetadata.some( (data, index) => { 
-                if(data.user === message.user || 
-                    data.user === message.bot_id || 
-                    (message.comment && data.user === message.comment.user) 
+            let user_index;
+            // walk users_metadata array looking for existing user metadata
+              // if it exists set the user_index to that index and return true (to exit the loop in the some method)
+              // if it does not exist then create create a new user in the users_metadata array
+            if(!users_metadata.some((data, index) => { 
+                if(
+                    data.user_id === message.user || 
+                    data.user_id === message.bot_id || 
+                    (message.comment && data.user_id === message.comment.user) 
                 ){
                 // if the user's metadata object is found then set the index for use in the else block
-                    metaDataIndex = index;
+                    user_index = index;
                     return true 
                 }  
             })) {
-            // parse any available submetadata to build the user's metadata object
+                // build a new user's metadata object
                 let user;
                 if(message.comment) user = message.comment.user;
-                else user = message.bot_id || (message.comment && message.comment.user) || message.user ;
-                userMetadata.push(parseSubMetadata(message, {user}));
+                else user = message.bot_id || (message.comment && message.comment.user) || message.user;
+                users_metadata.push(parseSubMetadata(message, { user_id: user }));
             }
 
-        // user's metadata exists --> modify their data object using metaDataIndex
-            else userMetadata[metaDataIndex] = parseSubMetadata(message, userMetadata[metaDataIndex]);   
+            // user's metadata exists --> modify their data object using user_index
+            else users_metadata[user_index] = parseSubMetadata(message, users_metadata[user_index]);   
         });
-
-        // set the timestamp field to be the most recent message in this query
-        return { timestamp: messages[0].ts, user_metadata: userMetadata };
+        return users_metadata;
     } else return false;
 }
 
@@ -76,6 +90,7 @@ function parseSubMetadata(message, data){
             newMetadata.file_metadata.push(parseFileMetadata(message.file));
         }
 
+        // filters non-quantitative subtypes and handles those of value
         if(['reply_broadcast', 'thread_broadcast', 'channel_join', 'bot_message'].includes(message.subtype)){
             switch(message.subtype){
                 case 'reply_broadcast':
@@ -158,8 +173,10 @@ function parseSubMetadata(message, data){
 function parseFileMetadata(file){
     const file_metadata = {
         type: file.filetype,
-        lines: file.lines
     };
+
+    // if the filetype is a code snippet capture the lines of code
+    if (file.lines) file_metadata.lines = file.lines;
 
     if(file.reactions){
         file_metadata.reactions = 0;

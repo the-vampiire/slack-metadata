@@ -1,8 +1,9 @@
 # Slack Channel Metadata Scraper
 
-##### Latest change: v3.0.0:
-- fixed axios upgrade issue
-- if a channel has no updated metadata (from the provided timestamp) it will return `null` in the `user_metadata` field
+##### Latest change: v3.3.0:
+- added a channel\_metadata object which stores the aggregate of all user\_metadata in that scrape
+- **see new shape of data below for breaking change**
+- improved internal language and comments for better readability
 
 ### This is a tool that captures Slack channel metadata of all users / bot users in a selected timeframe
 
@@ -32,7 +33,7 @@
 ### How to use
 
 - All you need to supply is an oAuthToken (with the `channels.history` permission scope set in Slack under oAuth&permissions -> Scopes) from Slack and a valid Slack channel ID of the channel you want to scrape.
-- Returns a promise 
+- **Returns a promise**
 
 ### Sample Usage
 ```
@@ -54,35 +55,39 @@ scraper('SLACK_CHANNEL_ID', 'SLACK_TEAM_OAUTH_TOKEN')
 #### This timestamp can be used for daily scans as a starting time for the next query (to prevent overlap of data)
 
 ```
-{ timestamp: '1511848922.000048',
-  channel_id: 'C8366651C'
-  user_metadata:
-   [ { user: 'U76U7H28J',
-       file_comment: 1,
-       messages: 111,
-       file_metadata: [Array],
-       file_share: 1,
-       thread_comments: 4,
-       reactions: 2,
-       threads: 1 },
-     { user: 'B77FHCQBB', messages: 69, bot: true },
-     { user: 'B781B3AN6', messages: 1, bot: true },
-     { user: 'U75K95UMP',
-       threads: 2,
-       thread_replies: 4,
-       reactions: 2,
-       is_starred: true,
+{ timestamp: '1516440825.000067',
+  users_metadata: [ 
+     { user_id: 'U81UE6STB',
+       pinned_item: 1,
        messages: 8,
-       pinned_item: 1 } ] }
+       me_message: 1,
+       file_metadata: [Array],
+       file_share: 2,
+       file_comment: 1,
+       reactions: 1,
+       thread_comments: 1,
+       threads: 1 },
+     { user_id: 'U83GHURRD', messages: 1 },
+     { user_id: 'U81UE2589', messages: 1 } 
+  ],
+
+  channel_metadata:
+   { channel_id: 'C88FDG3EV',
+     pinned_item: 1,
+     messages: 10,
+     me_message: 1,
+     file_metadata: [ [Object], [Object] ],
+     file_share: 2,
+     file_comment: 1,
+     reactions: 1,
+     thread_comments: 1,
+     threads: 1 } }
 ```
 
-### metaData fileMetadata array
+### metadata `file_metadata` array
+- any code that is shared (as a Slack code snippet) will have its line of code stored as `lines` and language stored as `type`
 
 ```
-[ { type: 'python',
-    lines: 3,
-    reactions: 1,
-    comments_count: 1,
-    is_starred: true,
-    num_stars: 1 } ]
+[ { type: 'jpg', is_starred: true, num_stars: 1 },
+  { type: 'javascript', lines: 1, comments_count: 1 } ]
 ```
