@@ -55,7 +55,7 @@ Returned null for the following channel and parameters:
   channel: ${channel}
   start: ${start}
   end: ${end}
-  count: ${count}
+  count: ${count || 1000}
       `);
       return null;
     }
