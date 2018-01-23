@@ -1,0 +1,35 @@
+{
+  "name": "slack-metadata",
+  "version": "1.0.0",
+  "description": "A tool that captures Slack channel metadata of all users and bot users in a selected timeframe. No qualitative data or message text are read or captured.",
+  "main": "metadataScraper.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/the-vampiire/slack-metadata.git"
+  },
+  "author": "Vampiire",
+  "keywords": [
+    "slack",
+    "channel",
+    "slack-scraper",
+    "slack-channel-scraper",
+    "slack-team-scraper",
+    "metadata",
+    "slack-metadata",
+    "slack-channel-metadata",
+    "slack-team-metadata",
+    "slack-team",
+    "slack-team-data",
+    "slack-data",
+    "slack-channel",
+    "slack-channel-data"
+  ],
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/the-vampiire/slack-metadata/issues"
+  },
+  "homepage": "https://github.com/the-vampiire/slack-metadata#readme",
+  "dependencies": {
+    "axios": "^0.17.1"
+  }
+}
