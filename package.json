@@ -1,6 +1,6 @@
 {
   "name": "slack-metadata",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A tool that captures Slack channel metadata of all users and bot users in a selected timeframe. No qualitative data or message text are read or captured.",
   "main": "metadataScraper.js",
   "repository": {
