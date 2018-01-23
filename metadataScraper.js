@@ -40,8 +40,8 @@ async function slackMetadata(channel, token, start, end, count){
       // populate channel_metadata [aggregrate of metadata from all users in the scrape]
       if (metadata.users_metadata) metadata.users_metadata.forEach((user_metadata) => {
         Object.keys(user_metadata).forEach((metric) => {
-          // user_id "metric" is the slack_user_id and uneccessary in the aggregate
-          if (metric === 'user_id') return;
+          // ignore user_id and bot fields
+          if (['user_id', 'bot'].includes(metric)) return;
           if (!metadata.channel_metadata[metric]) metadata.channel_metadata[metric] = user_metadata[metric];
           else metadata.channel_metadata[metric] += user_metadata[metric];
         })
