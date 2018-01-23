@@ -1,59 +1,50 @@
-# Slack Channel Metadata Scraper
+# Slack Channel Metadata
 
-##### Latest change: v3.3.0:
-- added a channel\_metadata object which stores the aggregate of all user\_metadata in that scrape
-- **see new shape of data below for breaking change**
-- improved internal language and comments for better readability
-
-### This is a tool that captures Slack channel metadata of all users / bot users in a selected timeframe
-
+### A tool that captures Slack channel metadata of all users and bot users in a selected timeframe. See the shape of the metadata at the end of this document for more informationx. 
 ### If you would like to help improve this package visit the [Github repo](https://github.com/the-vampiire/slackMetadataScraper)
 
-## **No qualitative message data is read or captured** - only quantitative metadata identifiable by the user's Slack user ID
+### **No qualitative message data is read or captured** - only quantitative metadata identifiable by the user's Slack user ID
 
 # Usage
 ### Parameters 
 #### Required
-- `<channelID>`: Slack channel ID to query for message history
-
-- `<oAuthToken>`: Slack oAuth token issued to your app / bot for the Slack team
+- `<channel, string>`: Slack channel ID to query for message history
+- `<token, string>`: Slack oAuth token issued to your app / bot for the Slack team
     - you must also allow the permissions scope "channels.history"
 
 #### Optional
-- `[start]`: beginning timestamp to query message history
-    - use most recent metaData.timestamp for this parameter during daily queries (more detail below)
-
-- `[end]`: ending timestamp to query message history - default to current time
-
-- `[count]`: number of messages to return in the query
+- `[start, string]`: beginning timestamp to query message history
+- `[end, string]`: ending timestamp to query message history - default to the most recent message within the timeframe
+- `[count, integer]`: number of messages to return in the query
     - default / maximum: 1000 messages
 
-### Note: if no start / end are passed then the entire message history (up to 1000 messages) will be scanned for metadata
+#### Notes
+- the start and end strings **must be the custom Slack timestamp format returned in any previous metadata scan**
+- if no start / end are passed then the entire message history (up to 1000 messages) will be scanned for metadata 
 
 ### How to use
 
 - All you need to supply is an oAuthToken (with the `channels.history` permission scope set in Slack under oAuth&permissions -> Scopes) from Slack and a valid Slack channel ID of the channel you want to scrape.
 - **Returns a promise**
+- resolves a `metadata object` [shape detailed below] on success 
+- resolves `null` on failure if there are no messages within that channel and start/end/count range to scan
 
 ### Sample Usage
 ```
-const scraper = require('slackmetascraper');
+const slackMetadata = require('slack-metadata');
 
-scraper('SLACK_CHANNEL_ID', 'SLACK_TEAM_OAUTH_TOKEN')
-.then(output => console.log(output))
-.catch(error => console.error(error));
-
+slackMetadata('slack_channel_id', 'slack_team_oauth_token')
+  .then(metadata => db.store(metadata))
+  .catch(error => console.error(error));
 ```
 
-# Sample Outputs
-
-### metaData object returned
+### Sample Outputs
 
 #### Note: the `timestamp` property is the Slack ts (timestamp) value of the most recent message in the current query
 - all timestamps are non-inclusive meaning if you pass a starting timestamp you will get metadata for all messages _after_ the message that corresponds to that timestamp
+- The `timestamp` can be used for repeated scans by passing it as the `start` argument. This will collect metadata that never overlaps with previous scans.
 
-#### This timestamp can be used for daily scans as a starting time for the next query (to prevent overlap of data)
-
+### `metadata` object
 ```
 { timestamp: '1516440825.000067',
   users_metadata: [ 
@@ -84,8 +75,8 @@ scraper('SLACK_CHANNEL_ID', 'SLACK_TEAM_OAUTH_TOKEN')
      threads: 1 } }
 ```
 
-### metadata `file_metadata` array
-- any code that is shared (as a Slack code snippet) will have its line of code stored as `lines` and language stored as `type`
+### `file_metadata`
+- any code that is shared (as a Slack code snippet) will have its lines of code stored as `lines` and language stored as `type`
 
 ```
 [ { type: 'jpg', is_starred: true, num_stars: 1 },
