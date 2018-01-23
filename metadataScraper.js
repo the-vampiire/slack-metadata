@@ -48,7 +48,15 @@ async function slackMetadata(channel, token, start, end, count){
       });
       return metadata;
     } else {
-      console.error('No messages to scan. Check the start and / or end timestamps passed into slackMetadata');
+      console.error(`
+Slack Metadata: No messages to scan.
+Returned null for the following channel and parameters:
+
+  channel: ${channel}
+  start: ${start}
+  end: ${end}
+  count: ${count}
+      `);
       return null;
     }
   } catch (error) {
