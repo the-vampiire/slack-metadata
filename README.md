@@ -1,6 +1,27 @@
 # Slack Channel Metadata
 
-### A tool that captures Slack channel metadata of all users and bot users in a selected timeframe. See the shape of the metadata at the end of this document for more informationx. 
+## v2.0
+- now builds metadata for private channels!
+  - _must set the permission scope `groups.history`_
+- improved JSDoc definition
+- improved error handling
+- added option to include bot users in channel metadata aggregate (defaults to false - ignore bot users)
+- **breaking change** refactored to accept an `options` object
+
+### `options` object
+- @property {string} `start`
+  - Slack timestamp [ts] of the message to begin the scrape from ** non-inclusive **
+- @property {string} `end`
+  - Slack timestamp of the last message to scan. Default: most recent message
+- @property {number} `count`
+  - number of messages to collect within the start-end range. Default/max: 1000
+- @property {boolean} `private`
+  - private channel. must have groups.history permission scope to scrape a private channel. defaults to false (public)
+- @property {boolean} include_bot
+  - option to include bot users in channel metadata aggregate. defaults to false (ignore bots)
+
+## What is Slack-Metadata?
+### A tool that scans and aggregates Slack channel metadata of all users and bot users in a selected timeframe. See the shape of the metadata at the end of this document for more informationx. 
 ### If you would like to help improve this package visit the [Github repo](https://github.com/the-vampiire/slackMetadataScraper)
 
 ### **No qualitative message data is read or captured** - only quantitative metadata identifiable by the user's Slack user ID

@@ -4,33 +4,62 @@ const querystring = require('querystring');
 /**
  * @param {string} channel -> Slack channel ID to scrape for metadata
  * @param {string} token -> Slack team OAuth token [with channels.history permission]
- * @param {string} start -> Slack timestamp [ts] of the message to begin the scrape from ** non-inclusive **
- * @param {string} end -> Slack timestamp of the last message to scan. Default: most recent message
- * @param {number} count -> number of messages to collect within the start-end range. Default/max: 1000
- * @return {Promise} -> Promise that resolves a metadata object { timestamp, channel_metadata, users_metadata }
+ * @type {options} options - options object
+ * @property {string} start - Slack timestamp [ts] of the message to begin the scrape from ** non-inclusive **
+ * @property {string} end - Slack timestamp of the last message to scan. Default: most recent message
+ * @property {number} count - number of messages to collect within the start-end range. Default/max: 1000
+ * @property {boolean} private_channel - private channel. must have groups.history permission scope to scrape a private channel. defaults to false (public)
+ * @property {boolean} include_bot - boolean option to include bot users in channel metadata aggregate. defaults to false (ignore bots)
+ * @return {PromiseLike} - Promise that resolves a metadata object { timestamp, channel_metadata, users_metadata }
  * @description Scrapes a Slack channel and collects the quantitative metadata into user and channel (users aggregate) metadata objects. 
- * Does not collect any text or qualitative data. 
- * @example 
- * const slackMetadata = require('slack-metadata');
+ * Does not view / collect any text or qualitative data. 
  * 
- * slackMetadata('slack_channel_id', 'slack_team_oauth_token')
- *   .then(metadata => db.store(metadata))
+ * ---- RETURNS A PROMISE ----
+ * @example - copy and paste to start your scrape
+ * 
+ * const scrape = require('slack-metadata');
+ * 
+ * const options = {
+ *  start: '1516440825.000067' // slack ts message property [proprietary]
+ *  end: '1516840825.000432'
+ *  count: 500,
+ *  private_channel: false,
+ * };
+ * 
+ * scrape('slack_channel_id', 'slack_team_oauth_token', options)
+ *   .then(console.log) // logs the metadata output
  *   .catch(error => console.error(`Slack Metrics error\n${error}`));
+ * 
  * @author Vampiire
  */
-async function slackMetadata(channel, token, start, end, count){
-  const url = 'https://slack.com/api/channels.history';
+
+async function slackMetadata(
+  channel,
+  token,
+  { start, end, count, private_channel, include_bot },
+) {
+  // private Slack channel IDs begin with 'G', public begin with 'C'
+  const url = private_channel ? 
+  'https://slack.com/api/groups.history' : 'https://slack.com/api/channels.history';
+
+  if (!private_channel && channel[0] === 'G') {
+    console.error(
+      'Private [group] channel detected.\
+      Check your options object and set the "private" property to\
+      true if you meant to scrape a private channel.\
+      Check that you have the permission scope "groups.history" set for your token.'
+    );
+  }
+
   const request = { token, channel };
-
-  if (count) request.count = count;
-  else request.count = 1000;
-
   if (start) request.oldest = start;
   if (end) request.latest = end;
+  request.count = count || 1000;
 
   try {
     const { data } = await axios.post(url, querystring.stringify(request));
     if (!data.ok) {
+      console.error(data);
       return data.error;
     } else if (!!data.messages.length) {
       const metadata = { timestamp: data.messages[0].ts };
@@ -39,6 +68,7 @@ async function slackMetadata(channel, token, start, end, count){
       
       // populate channel_metadata [aggregrate of metadata from all users in the scrape]
       if (metadata.users_metadata) metadata.users_metadata.forEach((user_metadata) => {
+        if (!include_bot && user_metadata.bot) return; // ignore bot user metadata in aggregate by default
         Object.keys(user_metadata).forEach((metric) => {
           // ignore user_id and bot fields
           if (['user_id', 'bot'].includes(metric)) return;
@@ -52,10 +82,11 @@ async function slackMetadata(channel, token, start, end, count){
 Slack Metadata: No messages to scan.
 Returned null for the following channel and parameters:
 
-  channel: ${channel}
+  channel_id: ${channel}
   start: ${start}
   end: ${end}
-  count: ${count || 1000}
+  count: ${count}
+  public: ${public}
       `);
       return null;
     }
@@ -99,7 +130,7 @@ function parseSubMetadata(message, data){
       }
   
       // filters non-quantitative subtypes and handles those of value
-      if(['reply_broadcast', 'thread_broadcast', 'channel_join', 'bot_message'].includes(message.subtype)){
+      if(['reply_broadcast', 'thread_broadcast', 'channel_join', 'group_join', 'bot_message'].includes(message.subtype)){
         switch(message.subtype){
           case 'reply_broadcast':
             if(!newMetadata.thread_comments) newMetadata.thread_comments = 1;
