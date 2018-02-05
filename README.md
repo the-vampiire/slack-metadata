@@ -15,7 +15,7 @@
   - Slack timestamp of the last message to scan. Default: most recent message
 - @property {number} `count`
   - number of messages to collect within the start-end range. Default/max: 1000
-- @property {boolean} `private`
+- @property {boolean} `private_channel`
   - private channel. must have groups.history permission scope to scrape a private channel. defaults to false (public)
 - @property {boolean} include_bot
   - option to include bot users in channel metadata aggregate. defaults to false (ignore bots)
@@ -33,11 +33,17 @@
 - `<token, string>`: Slack oAuth token issued to your app / bot for the Slack team
     - you must also allow the permissions scope "channels.history"
 
-#### Optional
-- `[start, string]`: beginning timestamp to query message history
-- `[end, string]`: ending timestamp to query message history - default to the most recent message within the timeframe
-- `[count, integer]`: number of messages to return in the query
-    - default / maximum: 1000 messages
+#### `options` object
+- @property {string} `start`
+  - Slack timestamp [ts] of the message to begin the scrape from ** non-inclusive **
+- @property {string} `end`
+  - Slack timestamp of the last message to scan. Default: most recent message
+- @property {number} `count`
+  - number of messages to collect within the start-end range. Default/max: 1000
+- @property {boolean} `private_channel`
+  - private channel. must have groups.history permission scope to scrape a private channel. defaults to false (public)
+- @property {boolean} include_bot
+  - option to include bot users in channel metadata aggregate. defaults to false (ignore bots)
 
 #### Notes
 - the start and end strings **must be the custom Slack timestamp format returned in any previous metadata scan**
@@ -54,7 +60,14 @@
 ```
 const slackMetadata = require('slack-metadata');
 
-slackMetadata('slack_channel_id', 'slack_team_oauth_token')
+ const options = {
+  start: '1516440825.000067'
+  end: '1516840825.000432'
+  count: 500,
+  private_channel: true,
+};
+
+slackMetadata('slack_channel_id', 'slack_team_oauth_token', options)
   .then(metadata => db.store(metadata))
   .catch(error => console.error(error));
 ```
